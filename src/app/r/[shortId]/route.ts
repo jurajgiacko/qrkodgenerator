@@ -39,8 +39,8 @@ export async function GET(
       )
     }
 
-    // Record the scan (fire and forget)
-    supabase.from('scans').insert({ qr_code_id: qrCode.id })
+    // Record the scan - must await for it to execute
+    await supabase.from('scans').insert({ qr_code_id: qrCode.id })
 
     // Build final URL with UTM parameters
     let finalUrl = qrCode.target_url
