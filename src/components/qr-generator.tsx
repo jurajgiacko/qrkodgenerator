@@ -78,8 +78,8 @@ export function QRGenerator({ onSave }: QRGeneratorProps) {
       },
       imageOptions: {
         crossOrigin: 'anonymous',
-        margin: 5,
-        imageSize: 0.5,
+        margin: 2,
+        imageSize: 0.7,
       },
       cornersSquareOptions: {
         type: 'extra-rounded',
