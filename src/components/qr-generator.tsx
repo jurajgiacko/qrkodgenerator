@@ -9,6 +9,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 type LogoType = 'enervit' | 'royalbay'
 
+interface ColorPreset {
+  name: string
+  dotsColor: string
+  backgroundColor: string
+  cornersColor: string
+}
+
+const COLOR_PRESETS: ColorPreset[] = [
+  { name: 'Klasická', dotsColor: '#000000', backgroundColor: '#ffffff', cornersColor: '#000000' },
+  { name: 'Enervit Orange', dotsColor: '#E85D04', backgroundColor: '#ffffff', cornersColor: '#E85D04' },
+  { name: 'RoyalBay Blue', dotsColor: '#1e3a8a', backgroundColor: '#ffffff', cornersColor: '#1e3a8a' },
+  { name: 'Zelená', dotsColor: '#16a34a', backgroundColor: '#ffffff', cornersColor: '#16a34a' },
+  { name: 'Červená', dotsColor: '#dc2626', backgroundColor: '#ffffff', cornersColor: '#dc2626' },
+  { name: 'Fialová', dotsColor: '#7c3aed', backgroundColor: '#ffffff', cornersColor: '#7c3aed' },
+]
+
 interface QRGeneratorProps {
   onSave?: (data: {
     name: string
@@ -37,6 +53,12 @@ export function QRGenerator({ onSave }: QRGeneratorProps) {
   const [savedShortId, setSavedShortId] = useState<string | null>(null)
   const [qrCode, setQrCode] = useState<QRCodeStyling | null>(null)
   
+  // Color settings
+  const [dotsColor, setDotsColor] = useState('#000000')
+  const [backgroundColor, setBackgroundColor] = useState('#ffffff')
+  const [cornersColor, setCornersColor] = useState('#000000')
+  const [selectedPreset, setSelectedPreset] = useState(0)
+  
   const qrRef = useRef<HTMLDivElement>(null)
 
   // Initialize QR code
@@ -48,11 +70,11 @@ export function QRGenerator({ onSave }: QRGeneratorProps) {
       data: targetUrl || 'https://vitarsport.sk',
       image: `/logos/${logoType}.png`,
       dotsOptions: {
-        color: '#000000',
+        color: dotsColor,
         type: 'rounded',
       },
       backgroundOptions: {
-        color: '#ffffff',
+        color: backgroundColor,
       },
       imageOptions: {
         crossOrigin: 'anonymous',
@@ -61,9 +83,11 @@ export function QRGenerator({ onSave }: QRGeneratorProps) {
       },
       cornersSquareOptions: {
         type: 'extra-rounded',
+        color: cornersColor,
       },
       cornersDotOptions: {
         type: 'dot',
+        color: cornersColor,
       },
     })
     setQrCode(qr)
@@ -87,9 +111,32 @@ export function QRGenerator({ onSave }: QRGeneratorProps) {
       qrCode.update({
         data: displayUrl,
         image: `/logos/${logoType}.png`,
+        dotsOptions: {
+          color: dotsColor,
+          type: 'rounded',
+        },
+        backgroundOptions: {
+          color: backgroundColor,
+        },
+        cornersSquareOptions: {
+          type: 'extra-rounded',
+          color: cornersColor,
+        },
+        cornersDotOptions: {
+          type: 'dot',
+          color: cornersColor,
+        },
       })
     }
-  }, [targetUrl, logoType, qrCode, savedShortId])
+  }, [targetUrl, logoType, qrCode, savedShortId, dotsColor, backgroundColor, cornersColor])
+
+  const applyPreset = (index: number) => {
+    const preset = COLOR_PRESETS[index]
+    setSelectedPreset(index)
+    setDotsColor(preset.dotsColor)
+    setBackgroundColor(preset.backgroundColor)
+    setCornersColor(preset.cornersColor)
+  }
 
   const handleDownload = async (format: 'png' | 'svg') => {
     if (qrCode) {
@@ -220,6 +267,111 @@ export function QRGenerator({ onSave }: QRGeneratorProps) {
 
         <Card>
           <CardHeader>
+            <CardTitle>Farby QR kódu</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Prednastavené farebné schémy</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {COLOR_PRESETS.map((preset, index) => (
+                  <button
+                    key={preset.name}
+                    type="button"
+                    onClick={() => applyPreset(index)}
+                    className={`p-2 border-2 rounded-lg transition-all text-xs ${
+                      selectedPreset === index
+                        ? 'border-primary bg-primary/5'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-4 h-4 rounded-full border"
+                        style={{ backgroundColor: preset.dotsColor }}
+                      />
+                      <span>{preset.name}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="dotsColor">Farba bodiek</Label>
+                <div className="flex gap-2">
+                  <input
+                    type="color"
+                    id="dotsColor"
+                    value={dotsColor}
+                    onChange={(e) => {
+                      setDotsColor(e.target.value)
+                      setSelectedPreset(-1)
+                    }}
+                    className="w-10 h-10 rounded cursor-pointer border"
+                  />
+                  <Input
+                    value={dotsColor}
+                    onChange={(e) => {
+                      setDotsColor(e.target.value)
+                      setSelectedPreset(-1)
+                    }}
+                    className="flex-1 font-mono text-sm"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cornersColor">Farba rohov</Label>
+                <div className="flex gap-2">
+                  <input
+                    type="color"
+                    id="cornersColor"
+                    value={cornersColor}
+                    onChange={(e) => {
+                      setCornersColor(e.target.value)
+                      setSelectedPreset(-1)
+                    }}
+                    className="w-10 h-10 rounded cursor-pointer border"
+                  />
+                  <Input
+                    value={cornersColor}
+                    onChange={(e) => {
+                      setCornersColor(e.target.value)
+                      setSelectedPreset(-1)
+                    }}
+                    className="flex-1 font-mono text-sm"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bgColor">Farba pozadia</Label>
+                <div className="flex gap-2">
+                  <input
+                    type="color"
+                    id="bgColor"
+                    value={backgroundColor}
+                    onChange={(e) => {
+                      setBackgroundColor(e.target.value)
+                      setSelectedPreset(-1)
+                    }}
+                    className="w-10 h-10 rounded cursor-pointer border"
+                  />
+                  <Input
+                    value={backgroundColor}
+                    onChange={(e) => {
+                      setBackgroundColor(e.target.value)
+                      setSelectedPreset(-1)
+                    }}
+                    className="flex-1 font-mono text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>UTM Parametre</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -285,7 +437,8 @@ export function QRGenerator({ onSave }: QRGeneratorProps) {
           <CardContent className="flex flex-col items-center space-y-4">
             <div 
               ref={qrRef}
-              className="bg-white p-4 rounded-lg border"
+              className="p-4 rounded-lg border"
+              style={{ backgroundColor: backgroundColor }}
             />
             
             {savedShortId && (
