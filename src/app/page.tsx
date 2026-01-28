@@ -35,19 +35,29 @@ export default function Home() {
       content: string
     }
   }) => {
-    const response = await fetch('/api/qr', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
+    try {
+      const response = await fetch('/api/qr', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
 
-    if (response.ok) {
       const result = await response.json()
-      return { shortId: result.shortId }
+      
+      if (response.ok) {
+        return { shortId: result.shortId }
+      } else {
+        console.error('Save failed:', result)
+        alert(`Chyba pri ukladaní: ${result.error || 'Neznáma chyba'}`)
+        return null
+      }
+    } catch (error) {
+      console.error('Network error:', error)
+      alert('Chyba siete. Skúste to znova.')
+      return null
     }
-    return null
   }
 
   return (

@@ -5,45 +5,54 @@ import { getSupabase } from '@/lib/supabase'
 import { generateShortId } from '@/lib/qr-utils'
 
 export async function POST(request: NextRequest) {
+  console.log('POST /api/qr - Start')
   try {
     const session = await getServerSession(authOptions)
+    console.log('Session:', session ? 'exists' : 'null')
     
     if (!session?.user) {
+      console.log('Unauthorized - no session')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
     const { name, targetUrl, logoType, utm } = body
+    console.log('Request body:', { name, targetUrl, logoType })
 
     if (!targetUrl) {
       return NextResponse.json({ error: 'Target URL is required' }, { status: 400 })
     }
 
     const shortId = generateShortId()
+    console.log('Generated shortId:', shortId)
+    
     const supabase = getSupabase()
+
+    const insertData = {
+      short_id: shortId,
+      name: name || null,
+      target_url: targetUrl,
+      logo_type: logoType,
+      utm_source: utm?.source || null,
+      utm_medium: utm?.medium || null,
+      utm_campaign: utm?.campaign || null,
+      utm_term: utm?.term || null,
+      utm_content: utm?.content || null,
+    }
+    console.log('Insert data:', insertData)
 
     const { data, error } = await supabase
       .from('qr_codes')
-      .insert({
-        short_id: shortId,
-        name: name || null,
-        target_url: targetUrl,
-        logo_type: logoType,
-        utm_source: utm?.source || null,
-        utm_medium: utm?.medium || null,
-        utm_campaign: utm?.campaign || null,
-        utm_term: utm?.term || null,
-        utm_content: utm?.content || null,
-        // user_id not used - we rely on session auth
-      })
+      .insert(insertData)
       .select()
       .single()
 
     if (error) {
       console.error('Supabase error:', error)
-      return NextResponse.json({ error: 'Failed to create QR code' }, { status: 500 })
+      return NextResponse.json({ error: `Failed to create QR code: ${error.message}` }, { status: 500 })
     }
 
+    console.log('QR code created:', data)
     return NextResponse.json({ 
       success: true, 
       shortId,
