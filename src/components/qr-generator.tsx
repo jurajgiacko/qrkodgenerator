@@ -104,8 +104,13 @@ export function QRGenerator({ onSave }: QRGeneratorProps) {
   // Update QR code when data changes
   useEffect(() => {
     if (qrCode) {
+      // Use correct production URL
+      const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL 
+        ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+        : process.env.NEXT_PUBLIC_APP_URL || 'https://99qrkodgenerator.vercel.app'
+      
       const displayUrl = savedShortId 
-        ? `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/r/${savedShortId}`
+        ? `${baseUrl}/r/${savedShortId}`
         : targetUrl || 'https://vitarsport.sk'
       
       qrCode.update({
@@ -183,7 +188,10 @@ export function QRGenerator({ onSave }: QRGeneratorProps) {
     setSavedShortId(null)
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  // Use Vercel URL in production, fallback to env or localhost
+  const appUrl = process.env.NEXT_PUBLIC_VERCEL_URL 
+    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+    : process.env.NEXT_PUBLIC_APP_URL || 'https://99qrkodgenerator.vercel.app'
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
