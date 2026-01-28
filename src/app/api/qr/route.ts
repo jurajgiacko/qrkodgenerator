@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         utm_campaign: utm?.campaign || null,
         utm_term: utm?.term || null,
         utm_content: utm?.content || null,
-        user_id: session.user.id,
+        // user_id not used - we rely on session auth
       })
       .select()
       .single()

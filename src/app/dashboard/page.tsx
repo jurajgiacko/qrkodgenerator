@@ -7,12 +7,14 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { QRCodeWithStats } from '@/lib/supabase'
+import { QRPreview } from '@/components/qr-preview'
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [qrCodes, setQrCodes] = useState<QRCodeWithStats[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [viewMode, setViewMode] = useState<'table' | 'gallery'>('gallery')
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -21,6 +23,7 @@ export default function DashboardPage() {
   }, [status])
 
   const fetchQRCodes = async () => {
+    setIsLoading(true)
     try {
       const response = await fetch('/api/qr')
       if (response.ok) {
@@ -48,7 +51,7 @@ export default function DashboardPage() {
   }
 
   const totalScans = qrCodes.reduce((sum, qr) => sum + (qr.scan_count || 0), 0)
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://99qrkodgenerator.vercel.app'
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -93,11 +96,16 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
-          <p className="mt-1 text-gray-500">
-            Prehľad všetkých vytvorených QR kódov a ich štatistík.
-          </p>
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
+            <p className="mt-1 text-gray-500">
+              Prehľad všetkých vytvorených QR kódov a ich štatistík.
+            </p>
+          </div>
+          <Button onClick={fetchQRCodes} variant="outline">
+            Obnoviť
+          </Button>
         </div>
 
         {/* Stats Cards */}
@@ -136,7 +144,25 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* QR Codes Table */}
+        {/* View Toggle */}
+        <div className="flex gap-2 mb-4">
+          <Button 
+            variant={viewMode === 'gallery' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('gallery')}
+          >
+            Galéria
+          </Button>
+          <Button 
+            variant={viewMode === 'table' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('table')}
+          >
+            Tabuľka
+          </Button>
+        </div>
+
+        {/* QR Codes */}
         <Card>
           <CardHeader>
             <CardTitle>Vytvorené QR kódy</CardTitle>
@@ -148,6 +174,38 @@ export default function DashboardPage() {
                 <Link href="/">
                   <Button>Vytvoriť prvý QR kód</Button>
                 </Link>
+              </div>
+            ) : viewMode === 'gallery' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {qrCodes.map((qr) => (
+                  <div key={qr.id} className="border rounded-lg p-4 bg-white">
+                    <div className="text-center mb-3">
+                      <p className="font-medium text-sm truncate">{qr.name || 'Bez názvu'}</p>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mt-1 ${
+                        qr.logo_type === 'enervit' 
+                          ? 'bg-orange-100 text-orange-800' 
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {qr.logo_type?.toUpperCase()}
+                      </span>
+                    </div>
+                    
+                    <QRPreview 
+                      data={`${appUrl}/r/${qr.short_id}`}
+                      logoType={qr.logo_type}
+                      size={150}
+                    />
+                    
+                    <div className="mt-3 text-center">
+                      <div className="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                        {qr.scan_count || 0} skenov
+                      </div>
+                      <p className="text-xs text-gray-400 mt-2">
+                        {new Date(qr.created_at).toLocaleDateString('sk-SK')}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="overflow-x-auto">
