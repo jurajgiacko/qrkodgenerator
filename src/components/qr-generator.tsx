@@ -7,6 +7,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
+// HARDCODED production URL - no env variables needed
+const APP_URL = 'https://99qrkodgenerator.vercel.app'
+
 type LogoType = 'enervit' | 'royalbay'
 
 interface ColorPreset {
@@ -51,6 +54,7 @@ export function QRGenerator({ onSave }: QRGeneratorProps) {
   const [utmContent, setUtmContent] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [savedShortId, setSavedShortId] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [qrCode, setQrCode] = useState<QRCodeStyling | null>(null)
   
   // Color settings
@@ -104,13 +108,10 @@ export function QRGenerator({ onSave }: QRGeneratorProps) {
   // Update QR code when data changes
   useEffect(() => {
     if (qrCode) {
-      // Use correct production URL
-      const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL 
-        ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-        : process.env.NEXT_PUBLIC_APP_URL || 'https://99qrkodgenerator.vercel.app'
-      
+      // After saving, QR code points to redirect URL
+      // Before saving, just show preview with target URL
       const displayUrl = savedShortId 
-        ? `${baseUrl}/r/${savedShortId}`
+        ? `${APP_URL}/r/${savedShortId}`
         : targetUrl || 'https://vitarsport.sk'
       
       qrCode.update({
@@ -156,6 +157,8 @@ export function QRGenerator({ onSave }: QRGeneratorProps) {
     if (!onSave || !targetUrl || targetUrl === 'https://') return
     
     setIsSaving(true)
+    setSaveError(null)
+    
     try {
       const result = await onSave({
         name,
@@ -171,7 +174,12 @@ export function QRGenerator({ onSave }: QRGeneratorProps) {
       })
       if (result) {
         setSavedShortId(result.shortId)
+      } else {
+        setSaveError('Nepodarilo sa uložiť QR kód')
       }
+    } catch (error) {
+      setSaveError('Chyba pri ukladaní')
+      console.error(error)
     } finally {
       setIsSaving(false)
     }
@@ -186,12 +194,8 @@ export function QRGenerator({ onSave }: QRGeneratorProps) {
     setUtmTerm('')
     setUtmContent('')
     setSavedShortId(null)
+    setSaveError(null)
   }
-
-  // Use Vercel URL in production, fallback to env or localhost
-  const appUrl = process.env.NEXT_PUBLIC_VERCEL_URL 
-    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-    : process.env.NEXT_PUBLIC_APP_URL || 'https://99qrkodgenerator.vercel.app'
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -238,12 +242,7 @@ export function QRGenerator({ onSave }: QRGeneratorProps) {
                       src="/logos/enervit.png" 
                       alt="Enervit" 
                       className="max-h-full max-w-full object-contain"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none'
-                        e.currentTarget.nextElementSibling?.classList.remove('hidden')
-                      }}
                     />
-                    <span className="hidden text-lg font-bold text-orange-600">ENERVIT</span>
                   </div>
                 </button>
                 <button
@@ -260,12 +259,7 @@ export function QRGenerator({ onSave }: QRGeneratorProps) {
                       src="/logos/royalbay.png" 
                       alt="RoyalBay" 
                       className="max-h-full max-w-full object-contain"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none'
-                        e.currentTarget.nextElementSibling?.classList.remove('hidden')
-                      }}
                     />
-                    <span className="hidden text-lg font-bold text-blue-600">ROYALBAY</span>
                   </div>
                 </button>
               </div>
@@ -449,11 +443,17 @@ export function QRGenerator({ onSave }: QRGeneratorProps) {
               style={{ backgroundColor: backgroundColor }}
             />
             
+            {saveError && (
+              <div className="w-full p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-800">{saveError}</p>
+              </div>
+            )}
+            
             {savedShortId && (
               <div className="w-full p-3 bg-green-50 border border-green-200 rounded-lg">
                 <p className="text-sm text-green-800 font-medium">QR kód uložený!</p>
                 <p className="text-xs text-green-600 mt-1 break-all">
-                  Redirect URL: {appUrl}/r/{savedShortId}
+                  Redirect URL: {APP_URL}/r/{savedShortId}
                 </p>
               </div>
             )}

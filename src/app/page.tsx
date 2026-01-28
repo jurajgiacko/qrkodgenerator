@@ -34,7 +34,7 @@ export default function Home() {
       term: string
       content: string
     }
-  }) => {
+  }): Promise<{ shortId: string } | null> => {
     try {
       const response = await fetch('/api/qr', {
         method: 'POST',
@@ -46,17 +46,14 @@ export default function Home() {
 
       const result = await response.json()
       
-      if (response.ok) {
-        return { shortId: result.shortId }
-      } else {
-        console.error('Save failed:', result)
-        alert(`Chyba pri ukladaní: ${result.error || 'Neznáma chyba'}`)
-        return null
+      if (!response.ok) {
+        throw new Error(result.error || 'Neznáma chyba')
       }
+      
+      return { shortId: result.shortId }
     } catch (error) {
-      console.error('Network error:', error)
-      alert('Chyba siete. Skúste to znova.')
-      return null
+      console.error('Save error:', error)
+      throw error
     }
   }
 
