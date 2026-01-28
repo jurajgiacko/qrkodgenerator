@@ -29,7 +29,7 @@ export default function LoginPage() {
     setIsLoading(false)
 
     if (result?.error) {
-      setError('Nesprávny email alebo heslo')
+      setError('Nesprávne prihlasovacie údaje')
     } else {
       router.push('/')
       router.refresh()
@@ -46,11 +46,11 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Používateľské meno</Label>
               <Input
                 id="email"
-                type="email"
-                placeholder="vas@email.sk"
+                type="text"
+                placeholder="enervit"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required

@@ -39,10 +39,8 @@ CREATE INDEX IF NOT EXISTS idx_qr_codes_user_id ON qr_codes(user_id);
 CREATE INDEX IF NOT EXISTS idx_scans_qr_code_id ON scans(qr_code_id);
 CREATE INDEX IF NOT EXISTS idx_scans_scanned_at ON scans(scanned_at);
 
--- Vloženie testovacieho používateľa (heslo: admin123)
--- Hash je vygenerovaný pomocou bcrypt
+-- Testovací používateľ
+-- Email: enervit / Heslo: enervit123
 INSERT INTO users (email, password_hash, name) VALUES 
-  ('admin@vitarsport.sk', '$2a$10$rQZ8K5Y5Y5Y5Y5Y5Y5Y5Y.placeholder', 'Admin')
+  ('enervit', '$2b$10$Dw6sIx5KVtx7OLJRgCzNGeOx8roRTqJ19484MxkyL2yj4l/BSvlkC', 'Enervit')
 ON CONFLICT (email) DO NOTHING;
-
--- Poznámka: Nahraďte placeholder hash skutočným bcrypt hashom pri produkcii
