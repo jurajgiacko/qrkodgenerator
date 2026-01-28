@@ -8,6 +8,8 @@ export async function GET(
 ) {
   try {
     const { shortId } = await params
+    console.log('Redirect request for shortId:', shortId)
+    
     const supabase = getSupabase()
 
     // Find the QR code
@@ -17,14 +19,20 @@ export async function GET(
       .eq('short_id', shortId)
       .single()
 
+    console.log('QR code lookup result:', { qrCode, error })
+
     if (error || !qrCode) {
+      console.error('QR code not found:', shortId, error)
       // QR code not found - redirect to home page
       return NextResponse.redirect(new URL('/', request.url))
     }
 
-    // Record the scan
-    await supabase.from('scans').insert({
+    // Record the scan (don't await to speed up redirect)
+    supabase.from('scans').insert({
       qr_code_id: qrCode.id,
+    }).then(({ error: scanError }) => {
+      if (scanError) console.error('Failed to record scan:', scanError)
+      else console.log('Scan recorded for:', qrCode.id)
     })
 
     // Build the final URL with UTM parameters
@@ -35,6 +43,8 @@ export async function GET(
       term: qrCode.utm_term,
       content: qrCode.utm_content,
     })
+
+    console.log('Redirecting to:', finalUrl)
 
     // Redirect to the target URL
     return NextResponse.redirect(finalUrl, { status: 302 })
