@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 // HARDCODED production URL - no env variables needed
 const APP_URL = 'https://99qrkodgenerator.vercel.app'
 
-type LogoType = 'enervit' | 'royalbay'
+type LogoType = 'enervit' | 'royalbay' | 'none'
 
 interface ColorPreset {
   name: string
@@ -32,7 +32,7 @@ interface QRGeneratorProps {
   onSave?: (data: {
     name: string
     targetUrl: string
-    logoType: LogoType
+    logoType: LogoType | null
     utm: {
       source: string
       medium: string
@@ -72,7 +72,7 @@ export function QRGenerator({ onSave }: QRGeneratorProps) {
       height: 300,
       type: 'svg',
       data: targetUrl || 'https://vitarsport.sk',
-      image: `/logos/${logoType}.png`,
+      image: logoType !== 'none' ? `/logos/${logoType}.png` : undefined,
       dotsOptions: {
         color: dotsColor,
         type: 'rounded',
@@ -116,7 +116,7 @@ export function QRGenerator({ onSave }: QRGeneratorProps) {
       
       qrCode.update({
         data: displayUrl,
-        image: `/logos/${logoType}.png`,
+        image: logoType !== 'none' ? `/logos/${logoType}.png` : undefined,
         dotsOptions: {
           color: dotsColor,
           type: 'rounded',
@@ -163,7 +163,7 @@ export function QRGenerator({ onSave }: QRGeneratorProps) {
       const result = await onSave({
         name,
         targetUrl,
-        logoType,
+        logoType: logoType === 'none' ? null : logoType,
         utm: {
           source: utmSource,
           medium: utmMedium,
@@ -227,7 +227,7 @@ export function QRGenerator({ onSave }: QRGeneratorProps) {
             </div>
             <div className="space-y-2">
               <Label>Vyberte logo</Label>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <button
                   type="button"
                   onClick={() => setLogoType('enervit')}
@@ -260,6 +260,19 @@ export function QRGenerator({ onSave }: QRGeneratorProps) {
                       alt="RoyalBay" 
                       className="max-h-full max-w-full object-contain"
                     />
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLogoType('none')}
+                  className={`p-4 border-2 rounded-lg transition-all ${
+                    logoType === 'none'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="h-16 flex items-center justify-center">
+                    <span className="text-gray-500 text-sm font-medium">Bez loga</span>
                   </div>
                 </button>
               </div>
