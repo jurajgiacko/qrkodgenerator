@@ -26,7 +26,7 @@ export default function Home() {
   const handleSave = async (data: {
     name: string
     targetUrl: string
-    logoType: 'enervit' | 'royalbay'
+    logoType: 'enervit' | 'royalbay' | null
     utm: {
       source: string
       medium: string
