@@ -32,7 +32,7 @@ interface QRGeneratorProps {
   onSave?: (data: {
     name: string
     targetUrl: string
-    logoType: LogoType | null
+    logoType: 'enervit' | 'royalbay' | null
     utm: {
       source: string
       medium: string
